@@ -1,6 +1,6 @@
 var mongoose = require("mongoose");
 const crypto = require("crypto");
-const uuidv1 = require("uuid/v1"); 
+const {v4 : uuidv4} = require('uuid')
 
 // usermodel
 var userSchema = new mongoose.Schema(
@@ -47,7 +47,7 @@ var userSchema = new mongoose.Schema(
 userSchema.virtual("password")
     .set(function(password){
         this._password = password; //private password variable
-        this.salt = uuidv1(); //secret key used to hash password
+        this.salt = uuidv4(); //secret key used to hash password
         this.encry_password = this.securePassword(password) //fn returns encrypted password
     })
     .get(function(){
@@ -55,9 +55,9 @@ userSchema.virtual("password")
     })
 
 /* mongodb method used to Encrypt password using crypto and uuid */
-userSchema.method = {
+userSchema.methods = {
     securePassword(plainpassword){
-        if(!password) return "";
+        if(!plainpassword) return "";
         try {
             return crypto.createHmac("sha256", this.salt)
                 .update(plainpassword)
