@@ -15,6 +15,7 @@ const productCartSchema = new mongoose.Schema(
 );
 const ProductCart = mongoose.model("ProductCart", productCartSchema);
 
+/** Order list schema */
 const OrderSchema = new mongoose.Schema(
     {
         product: [productCartSchema],
