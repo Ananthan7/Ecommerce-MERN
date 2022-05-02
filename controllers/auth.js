@@ -1,6 +1,6 @@
 
 exports.signout = (req,res) => {
     res.json({
-        message: "user sign out"
+        message: "user signed out"
     })
 };
