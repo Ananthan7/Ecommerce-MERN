@@ -56,6 +56,9 @@ userSchema.virtual("password")
 
 /* mongodb method used to Encrypt password using crypto and uuid */
 userSchema.methods = {
+    authenticate: function(plainpassword) {
+        return this.securePassword(plainpassword) === this.encry_password;
+    },
     securePassword(plainpassword){
         if(!plainpassword) return "";
         try {
