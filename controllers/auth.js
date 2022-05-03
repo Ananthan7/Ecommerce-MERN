@@ -3,6 +3,7 @@ const { check, validationResult } = require("express-validator");
 var jwt = require("jsonwebtoken");
 var expressJwt = require("express-jwt");
 
+/* --- user signin callback function --- */
 exports.signin = (req, res) => {
   const errors = validationResult(req);
   const { email, password } = req.body;
@@ -12,7 +13,7 @@ exports.signin = (req, res) => {
       errors: errors.array()[0].msg,
     });
   }
-
+  //fing user from db
   User.findOne({ email }, (err, user) => {
     if (err || !user) {
       return res.status(400).json({
@@ -29,13 +30,13 @@ exports.signin = (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.SECRET);
     //put token in cookie
     res.cookie("token", token, { expire: new Date() + 9999 });
-
     //send response to front end
     const { _id, name, email, role } = user;
     return res.json({ token, user: { _id, name, email, role } });
   });
 };
 
+/* ----signup callback----- */
 exports.signup = (req, res) => {
   const errors = validationResult(req);
 
@@ -44,7 +45,6 @@ exports.signup = (req, res) => {
       error: errors.array()[0].msg,
     });
   }
-
   const user = new User(req.body);
   user.save((err, user) => {
     if (err) {
@@ -60,8 +60,36 @@ exports.signup = (req, res) => {
   });
 };
 
+/* --signout callback--  */
 exports.signout = (req, res) => {
+  res.clearCookie("token")
   res.json({
-    message: "User signout",
+    message: "User signout successfully",
   });
 };
+
+/* ---protected routes/ Is user logged in check with express-Jwt--- */ 
+exports.isSignedIn = expressJwt({
+  secret: process.env.SECRET,
+  userProperty: "auth"
+});
+
+/*----custom middlewares to check user is authenticated----*/
+exports.isAuthenticated = (req, res, next) => {
+  let checker = req.profile && req.auth && req.profile._id === req.auth._id;
+  if(!checker){
+    return res.status(403).json({
+      error: "Access denied"
+    });
+  };
+  next();
+};
+
+/* check user isAdmin have previlages */
+exports.isAdmin = (req, res, next) => {
+  if(req.profile.role === 0){
+    return res.status(403).json({
+      error: "you are not admin, Access denied"
+    })
+  }
+}
